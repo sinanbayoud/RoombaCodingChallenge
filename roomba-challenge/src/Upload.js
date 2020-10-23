@@ -1,34 +1,32 @@
 import React, {useState} from 'react';
 import './styles.css';
+import RoombaTable from './RoombaTable';
 
 export function Upload() {
   const [files, setFiles] = useState("");
+  var inputJson = "";
 
   const handleChange = e => {
-    const fileReader = new FileReader();
     try {
+      const fileReader = new FileReader();
       fileReader.readAsText(e.target.files[0], "UTF-8");
       fileReader.onload = e => {
-        var inputJson = JSON.parse(e.target.result);
-        // console.log(inputJson.roomDimensions);
-        // console.log(inputJson.initialRoombaLocation);
-        // console.log(inputJson.dirtLocations);
-        // console.log(inputJson.drivingInstructions);
+        inputJson = JSON.parse(e.target.result);
         setFiles(inputJson);
       };
     } 
     catch(err) {
+      inputJson = "";
       alert("A file must be selected!")
     }
-    
   };
 
   return (
     <div className="App">
       <header className="App-header">
-      <h1>Upload Json file - Example</h1>
+        <h1>Upload Json file</h1>
         <input type="file" onChange={handleChange} />
-        {files.dirtLocations}
+        <RoombaTable data={files}></RoombaTable>
       </header>
     </div>
   );
