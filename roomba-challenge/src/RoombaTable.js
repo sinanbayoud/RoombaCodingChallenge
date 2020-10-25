@@ -17,8 +17,17 @@ const useStyles = makeStyles({
 
 var totalDistance = 0;
 var wallsHit = 0;
+var totalDirtCollected = 0;
 
-//TODO
+/**
+ * Helper method that figures out the next location the location will move to
+ * based on its current location and next action to take, while keeping the 
+ * room dimensions in mind. If a wall is hit, wallsHit is incremented. 
+ * totalDistance is incremented for every succesful step
+ *
+ * @param currentLocation, currentAction, roomDimensions
+ * @public
+ */
 function updateLocation(currentLocation, currentAction, roomDimensions) {
     var xLimit = roomDimensions[0];
     var yLimit = roomDimensions[1];
@@ -58,37 +67,63 @@ function updateLocation(currentLocation, currentAction, roomDimensions) {
     }
 }
 
-//TODO
-// function checkDirt(location) {
-//     return true;
-// }
+/**
+ * Helper method to check if the current roomba location has dirt on it
+ *
+ * @param location, dirtLocations
+ * @public
+ */
+function checkDirt(location, dirtLocations) {
+    console.log(location);
+    for (var i = 0; i < dirtLocations.length; i++) {
+        if (dirtLocations[i][0] === location[0] && dirtLocations[i][1] === location[1]) {
+            //dirtLocations[i] = [-1,-1];
+            return true;
+        } 
+    }
+    return false;
+}
 
+/**
+ * Helper method that creates a row for the table based on the step number,
+ * current location, current action, amount of dirt collected, and amount 
+ * of walls hit
+ *
+ * @param step, location, action, dirtCollected, wallsHit
+ * @public
+ */
 function createData(step, location, action, dirtCollected, wallsHit) {
     return { step, location, action, dirtCollected, wallsHit };
 }
 
 const RoombaTable = ({ data }) => {
+    const classes = useStyles();
+    
     var rows = [];
     totalDistance = 0;
     wallsHit = 0;
-    
-    const classes = useStyles();
+    totalDirtCollected = 0;
     var actionList = data.drivingInstructions;
     var currentLocation = data.initialRoombaLocation;
     var roomDimensions = data.roomDimensions;
+    var dirtLocations = data.dirtLocations;
 
+    //Check if there is a valid list of instructions
     if (data.drivingInstructions !== undefined) {
+        //push the initial row
         rows.push(createData(1, currentLocation[0] + ", " + currentLocation[1], "", 0, wallsHit));
         
         for (var index = 1; index < actionList.length+1; index++) {
             var currentAction = actionList[index-1];
             currentLocation = updateLocation(currentLocation, currentAction, roomDimensions);
-            rows.push(createData(index+1, currentLocation[0] + ", " + currentLocation[1], currentAction, 0, wallsHit));
+            if(checkDirt(currentLocation, dirtLocations) === true) {
+                totalDirtCollected++;
+            }
+            rows.push(createData(index+1, currentLocation[0] + ", " + currentLocation[1], currentAction, totalDirtCollected, wallsHit));
         }
 
         var finalPosition = currentLocation[0] + ", " + currentLocation[1];
     }
-
 
     return (
     <TableContainer component={Paper}>
@@ -115,10 +150,12 @@ const RoombaTable = ({ data }) => {
             ))}
             </TableBody>
         </Table>
-        <h1>Final Position: {finalPosition}</h1>
-        <h1>Total Distance Travelled: {totalDistance}</h1>
-        <h1>Total Dirt Collected: TODO</h1>
-        <h1>Total Walls Hit: {wallsHit}</h1>
+        <div className="result-container">
+            <h1>Final Position: {finalPosition}</h1>
+            <h1>Total Distance Travelled: {totalDistance}</h1>
+            <h1>Total Dirt Collected: {totalDirtCollected}</h1>
+            <h1>Total Walls Hit: {wallsHit}</h1>
+        </div>
     </TableContainer>
     );
 }
